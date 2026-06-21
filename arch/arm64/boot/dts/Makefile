@@ -33,9 +33,9 @@ subdir-y += zte
 dtstree		:= $(srctree)/$(src)
 
 ifneq ($(CONFIG_OF_IGNORE_QCOM_VENDOR_DTS),y)
-vendor := $(dtstree)/vendor-legacy
+vendor := $(dtstree)/oppo-msm8937
 ifneq "$(wildcard $(vendor)/Makefile)" ""
-        subdir-y += vendor-legacy
+        subdir-y += oppo-msm8937
 endif
 endif
 
