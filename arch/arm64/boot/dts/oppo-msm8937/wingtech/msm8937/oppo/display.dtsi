@@ -1,10 +1,10 @@
-#include "qcom/dsi-panel-oppo16061tianma_hx8394f_720p_video.dtsi"
-#include "qcom/dsi-panel-oppo16061boe_hx8394f_720p_video.dtsi"
-#include "qcom/dsi-panel-oppo16061truly_hx8394f_720p_video.dtsi"
-#include "qcom/dsi-panel-oppo16061boe_nt35521s_720p_video.dtsi"
-#include "qcom/dsi-panel-oppo16061boe_nt35521s_b8_720p_video.dtsi"
-#include "qcom/dsi-panel-dsi-panel-oppo16061truly_nt35521s_720p_video.dtsi"
-#include "qcom/dsi-panel-oppo16061truly_hx8394f_new_720p_video.dtsi"
+#include "panel/dsi-panel-oppo16061tianma_hx8394f_720p_video.dtsi"
+#include "panel/dsi-panel-oppo16061boe_hx8394f_720p_video.dtsi"
+#include "panel/dsi-panel-oppo16061truly_hx8394f_720p_video.dtsi"
+#include "panel/dsi-panel-oppo16061boe_nt35521s_720p_video.dtsi"
+#include "panel/dsi-panel-oppo16061boe_nt35521s_b8_720p_video.dtsi"
+#include "panel/dsi-panel-dsi-panel-oppo16061truly_nt35521s_720p_video.dtsi"
+#include "panel/dsi-panel-oppo16061truly_hx8394f_new_720p_video.dtsi"
 
 &dsi_boe_oppo16061_hx8394f_720p_video {
       qcom,cont-splash-enabled;
