@@ -3,7 +3,7 @@ on:
   workflow_call:
   workflow_dispatch:
   push:
-    branches: "lineage-23.2"
+    branches: "port-oddo"
 
 jobs:
   build:
