@@ -1,0 +1,113 @@
+name: Build-dtb-with-NDK-Clang
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: "port-oddo"
+
+jobs:
+  build:
+    name: Build Kernel by ${{ github.actor }}
+    runs-on: ubuntu-22.04
+    steps:
+
+      - name: Get branch names.
+        id: branch-names
+        uses: tj-actions/branch-names@v8
+
+      - name: Set SWAP to 5GiB
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 5
+
+      - name: Initialize compilation environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git automake flex lzop bison gperf build-essential zip curl zlib1g-dev \
+            g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev \
+            squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven \
+            libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl \
+            libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev \
+            libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3 \
+            libelf-dev
+          mkdir -p $GITHUB_WORKSPACE/workdir
+          cd $GITHUB_WORKSPACE/workdir
+          echo "BUILD_TIME=$(TZ=Asia/Shanghai date '+%Y%m%d%H%M')" >> $GITHUB_ENV
+
+      - name: Clone Clang toolchain (Git LFS)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq git-lfs
+
+          mkdir -p "$GITHUB_WORKSPACE/workdir/toolchain"
+          cd "$GITHUB_WORKSPACE/workdir/toolchain"
+
+          # clone（不用 --depth 1 也行；带 --depth 1 时 LFS 更容易踩坑，建议先不用）
+          git clone https://github.com/chaoticOS/clang-r563880c clang-r563880c
+          cd clang-r563880c
+
+          # 初始化 LFS 并把真实二进制拉下来（关键）
+          git lfs install
+          git lfs pull
+
+          # 确保可执行
+          chmod -R u+x bin/ 2>/dev/null || true
+
+          # 诊断：确认 clang 不是 pointer
+          file bin/clang
+          ls -lh bin/clang
+
+          echo "CLANG_DIR=$GITHUB_WORKSPACE/workdir/toolchain/clang-r563880c" >> $GITHUB_ENV
+          
+      - name: Get Kernel source
+        run: |
+          git clone --recursive https://github.com/$GITHUB_REPOSITORY/ \
+                    -b ${{ steps.branch-names.outputs.current_branch }} --depth 1 \
+                    $GITHUB_WORKSPACE/workdir/source
+
+      - name: Build Kernel with NDK Clang + LLD
+        run: |
+          export KBUILD_BUILD_HOST=Github-Action
+          export KBUILD_BUILD_USER=$(echo ${{ github.actor }} | tr A-Z a-z)
+          export ARCH="arm64"
+          export SUBARCH="arm64"
+
+          # NDK r29 中 LLVM 预编译目录
+          export CLANG_DIR=$GITHUB_WORKSPACE/workdir/toolchain/clang-r563880c
+          export PATH="$CLANG_DIR/bin:$PATH"
+
+          # ========== 关键的环境变量（解决兼容性） ==========
+          # 显式指定各个工具，防止 Makefile 回退到系统 GCC
+          export CC=clang
+          export LD=ld.lld
+          export AR=llvm-ar
+          export NM=llvm-nm
+          export OBJCOPY=llvm-objcopy
+          export OBJDUMP=llvm-objdump
+          export READELF=llvm-readelf
+          export STRIP=llvm-strip
+          export HOSTCC=clang
+          export HOSTCXX=clang++
+
+          # 告诉 Clang 目标平台的三元组（Android arm64 常用 aarch64-linux-android 或 aarch64-linux-gnu）
+          # export CLANG_TRIPLE=aarch64-linux-gnu-
+
+          # 有些旧内核 Makefile 仍然检查 CROSS_COMPILE，设为空可避免警告
+          export CROSS_COMPILE=
+
+          # 验证工具链版本
+          clang --version
+          ld.lld --version
+
+          cd $GITHUB_WORKSPACE/workdir/source
+
+          # 编译（LLVM=1 依然开启，配合上面环境变量双重保险）
+          make LLVM=1 O=out vendor/msm8937-perf_defconfig vendor/xiaomi/msm8937/mi8937.config
+          make -j$(nproc --all) LLVM=1 O=out dtbs
+
+      - name: Upload Kernel
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel
+          path: workdir/source/out/arch/arm64/boot/dts/oppo-msm8937/*.dtb
