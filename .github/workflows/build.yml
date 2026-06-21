@@ -44,7 +44,7 @@ jobs:
           cd "$GITHUB_WORKSPACE/workdir/toolchain"
 
           # clone（不用 --depth 1 也行；带 --depth 1 时 LFS 更容易踩坑，建议先不用）
-          git clone https://github.com/nduykha/Clang_r563880c_13989888.git clang-r563880c
+          git clone https://github.com/chaoticOS/clang-r563880c clang-r563880c
           cd clang-r563880c
 
           # 初始化 LFS 并把真实二进制拉下来（关键）
