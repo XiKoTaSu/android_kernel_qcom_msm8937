@@ -1,0 +1,122 @@
+&sdc2_cmd_on {
+	config {
+		drive-strength = <16>;
+	};
+};
+
+&sdc2_data_on {
+	config {
+		drive-strength = <16>;
+	};
+};
+
+&tlmm {
+    pmx_ts_id1_active {
+	    ts_id1_active: ts_id1_active {
+			mux {
+				pins = "gpio61";
+				function = "gpio";
+			};
+
+		    config {
+				pins = "gpio61";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+	};
+
+	pmx_ts_id2_active {
+		ts_id2_active: ts_id2_active {
+			mux {
+				pins = "gpio99";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio99";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+	};
+
+	pmx_ts_id3_active {
+		ts_id3_active: ts_id3_active {
+			mux {
+				pins = "gpio59";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio59";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+	};
+
+	pmx_ts_reset_active {
+		ts_reset_active: ts_reset_active {
+			config {
+				/delete-property/ bias-pull-up;
+					output-low;
+			};
+		};
+	};
+
+	/delete-node/ cam_sensor_rear_vana;
+	/delete-node/ cam_sensor_rear_vana_sleep;
+
+	cam_sensor_rear_vana: cam_sensor_rear_vana {
+		/* VANA */
+		mux {
+			pins = "gpio41";
+			function = "gpio";
+		};
+		
+		config {
+			pins = "gpio41";
+			bias-disable; /* No PULL */
+			drive-strength = <2>; /* 2 MA */
+		};
+	};
+
+	cam_sensor_rear_vana_sleep: cam_sensor_rear_vana_sleep {
+		/* VANA */
+		mux {
+			pins = "gpio41";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio41";
+			bias-disable; /* No PULL */
+			drive-strength = <2>; /* 2 MA */
+		};
+	};
+
+	cam_sensor_front1_default: cam_sensor_front1_default {
+			/* RESET, STANDBY */
+		mux {
+			pins = "gpio40", "gpio39", "gpio47";
+		};
+
+		config {
+			pins = "gpio40", "gpio39", "gpio47";
+		};
+	};
+
+	cam_sensor_front1_sleep: cam_sensor_front1_sleep {
+		/* RESET, STANDBY */
+		mux {
+			pins = "gpio40", "gpio39", "gpio47";
+		};
+
+		config {
+			pins = "gpio40", "gpio39", "gpio47";
+		};
+	};
+	/delete-node/ cam_sensor_rear_vdig;
+	/delete-node/ cam_sensor_rear_vdig_sleep;
+};

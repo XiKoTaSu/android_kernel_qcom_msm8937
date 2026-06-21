@@ -1321,8 +1321,6 @@ config TOUCHSCREEN_ST
 	  To compile this driver as a module, choose M here: the
 	  module will be called st.
 
-source "drivers/input/touchscreen/st/Kconfig"
-
 config TOUCHSCREEN_SYNAPTICS_DSX
 	bool "Synaptics DSX Touchscreen Driver"
 	depends on I2C
@@ -1333,8 +1331,6 @@ config TOUCHSCREEN_SYNAPTICS_DSX
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx.
-
-source "drivers/input/touchscreen/synaptics_dsx/Kconfig"
 
 config TOUCHSCREEN_SYNAPTICS_TCM
 	bool "Synaptics TCM Touchscreen Driver"
@@ -1347,12 +1343,6 @@ config TOUCHSCREEN_SYNAPTICS_TCM
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_tcm.
 
-source "drivers/input/touchscreen/synaptics_tcm/Kconfig"
-
-source "drivers/input/touchscreen/focaltech_touch/Kconfig"
-
-source "drivers/input/touchscreen/nt36xxx/Kconfig"
-
 config TOUCHSCREEN_GEN_VKEYS
 	tristate "Touchscreen Virtual Keys Driver"
 	help
@@ -1363,5 +1353,9 @@ config TOUCHSCREEN_GEN_VKEYS
 
 	 To compile this driver as a module, choose M here: the
 	 module will be called gen_vkeys.
+
+source "drivers/input/touchscreen/oppo_touchscreen/Kconfig"
+
+source "drivers/input/touchscreen/gt9xx_v2.8/Kconfig"
 
 endif

@@ -1,0 +1,97 @@
+#include "qcom/dsi-panel-oppo16061tianma_hx8394f_720p_video.dtsi"
+#include "qcom/dsi-panel-oppo16061boe_hx8394f_720p_video.dtsi"
+#include "qcom/dsi-panel-oppo16061truly_hx8394f_720p_video.dtsi"
+#include "qcom/dsi-panel-oppo16061boe_nt35521s_720p_video.dtsi"
+#include "qcom/dsi-panel-oppo16061boe_nt35521s_b8_720p_video.dtsi"
+#include "qcom/dsi-panel-dsi-panel-oppo16061truly_nt35521s_720p_video.dtsi"
+#include "qcom/dsi-panel-oppo16061truly_hx8394f_new_720p_video.dtsi"
+
+&dsi_boe_oppo16061_hx8394f_720p_video {
+      qcom,cont-splash-enabled;
+      qcom,esd-check-enabled;
+};
+
+&dsi_truly_oppo16061_hx8394f_720p_video {
+      qcom,cont-splash-enabled;
+      qcom,esd-check-enabled;
+};
+
+&dsi_boe_oppo16061_nt35521s_720p_video {
+      qcom,cont-splash-enabled;
+};
+
+&dsi_boe_oppo16061_nt35521s_b8_720p_video {
+      qcom,cont-splash-enabled;
+};
+
+&dsi_truly_oppo16061_nt35521s_720p_video {
+      qcom,cont-splash-enabled;
+};
+
+&dsi_truly_oppo16061_hx8394f_new_720p_video {
+      qcom,cont-splash-enabled;
+};
+
+&dsi_panel_pwr_supply {
+	qcom,panel-supply-entry@2 {
+		qcom,supply-post-on-sleep = <5>;
+	};
+
+	qcom,panel-supply-entry@3 {
+		qcom,supply-post-on-sleep = <5>;
+	};
+};
+
+&ibb_regulator {
+	qcom,qpnp-ibb-discharge-resistor = <32>;
+};
+
+&lab_regulator {
+	qcom,qpnp-ibb-init-lcd-voltage = <5500000>;
+};
+
+&ibb_regulator {
+	qcom,qpnp-ibb-init-lcd-voltage = <5500000>;
+};
+
+&mdss_dsi0 {
+	qcom,dsi-pref-sub-pan = <&dsi_truly_oppo16061_hx8394f_720p_video>;
+	qcom,dsi-pref-sub1-pan = <&dsi_boe_oppo16061_hx8394f_720p_video>;
+	qcom,dsi-pref-sub2-pan = <&dsi_boe_oppo16061_nt35521s_b8_720p_video>;
+	qcom,dsi-pref-sub3-pan = <&dsi_boe_oppo16061_nt35521s_720p_video>;
+	qcom,dsi-pref-sub4-pan = <&dsi_truly_oppo16061_nt35521s_720p_video>;
+	qcom,dsi-pref-prim-pan =<&dsi_tianma_oppo16061_hx8394f_720p_video>;
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+
+	qcom,platform-te-gpio = <&tlmm 24 0>;
+	qcom,platform-reset-gpio = <&tlmm 60 0>;
+	qcom,platform-enable-gpio = <&tlmm 48 0>; /* 5V ENP */
+	qcom,platform-bklight-en-gpio = <&tlmm 63 0>; /* -5V ENN */
+	qcom,platform-ldo-1p8-gpio = <&tlmm 62 0>; /* ldo 1.8V */
+};
+
+&wled {
+#ifdef CONFIG_BACKLIGHT_QCOM_WLED
+	qcom,cabc;
+#else
+	qcom,en-cabc;
+#endif
+};
+
+&soc {
+	mdss_dsi0_pll: qcom,mdss_dsi_pll@1a94a00 {
+		/delete-property/ qcom,dsi-pll-ssc-en;
+		/delete-property/ qcom,dsi-pll-ssc-mode;
+		/delete-property/ qcom,ssc-frequency-hz;
+		/delete-property/ qcom,ssc-ppm;
+	};
+
+	mdss_dsi1_pll: qcom,mdss_dsi_pll@1a96a00 {
+		/delete-property/ qcom,dsi-pll-ssc-en;
+		/delete-property/ qcom,dsi-pll-ssc-mode;
+		/delete-property/ qcom,ssc-frequency-hz;
+		/delete-property/ qcom,ssc-ppm;
+	};
+};

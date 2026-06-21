@@ -1,0 +1,58 @@
+&soc {
+	qcom,msm-thermal {
+		/delete-property/ qcom,therm-reset-temp;
+	};
+};
+
+&soc {
+	fpc_fpc1020 {
+		compatible = "fpc,fpc1020";
+		fpc,irq-gpio = <&tlmm 38 0x00>;
+		vdd_io-supply = <&pm8937_l6>;
+	};
+
+	devinfo {
+		compatible = "oppo-devinfo";
+		Hw,operator-gpio1 = <&tlmm 20 0x00>;
+		Hw,operator-gpio2 = <&tlmm 21 0x00>;
+		Hw,operator-gpio3 = <&tlmm 22 0x00>;
+
+		Hw,sub_hwid_1 = <&tlmm 19 0x00>;
+		Hw,audio_hwid_1 = <&tlmm 90 0x00>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&hw_operator_gpio1_active &hw_operator_gpio2_active &hw_operator_gpio3_active &hw_sub_gpio1_active &hw_audio_gpio1_active>;
+	};
+	
+	i2c_3: i2c@78b7000 { /* BLSP1 QUP3 */
+		status = "ok";
+	};
+	
+	/delete-node/ qseecom@85b00000;
+	qcom_seecom: qseecom@84a00000 {
+		compatible = "qcom,qseecom";
+		reg = <0x84a00000 0x1900000>;
+		reg-names = "secapp-region";
+		qcom,hlos-num-ce-hw-instances = <1>;
+		qcom,hlos-ce-hw-instance = <0>;
+		qcom,qsee-ce-hw-instance = <0>;
+		qcom,disk-encrypt-pipe-pair = <2>;
+		qcom,support-fde;
+		qcom,appsbl-qseecom-support;
+		qcom,msm-bus,name = "qseecom-noc";
+		qcom,msm-bus,num-cases = <4>;
+		qcom,msm-bus,num-paths = <1>;
+		qcom,support-bus-scaling;
+		qcom,msm-bus,vectors-KBps =
+			<55 512 0 0>,
+			<55 512 0 0>,
+			<55 512 120000 1200000>,
+			<55 512 393600 3936000>;
+		clocks = <&clock_gcc clk_crypto_clk_src>,
+			<&clock_gcc clk_gcc_crypto_clk>,
+			<&clock_gcc clk_gcc_crypto_ahb_clk>,
+			<&clock_gcc clk_gcc_crypto_axi_clk>;
+		clock-names = "core_clk_src", "core_clk",
+			"iface_clk", "bus_clk";
+		qcom,ce-opp-freq = <100000000>;
+	};
+};

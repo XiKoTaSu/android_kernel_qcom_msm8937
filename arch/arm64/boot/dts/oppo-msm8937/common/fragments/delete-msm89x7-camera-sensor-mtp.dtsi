@@ -1,0 +1,5 @@
+&cci {
+	/delete-node/ qcom,actuator@0;
+	/delete-node/ qcom,actuator@1;
+	/delete-node/ qcom,camera@2;
+};
