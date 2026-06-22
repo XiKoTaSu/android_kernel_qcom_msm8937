@@ -1093,10 +1093,6 @@ extern int xiaomi_sdm439_lm3697_set_brightness(int brightness);
 extern int xiaomi_sdm439_ktd3137_brightness_set(int brightness);
 #endif
 
-#ifdef CONFIG_BACKLIGHT_LM3697
-extern int lm3697_bl_set(int bl_level);
-#endif
-
 static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 							u32 bl_level)
 {

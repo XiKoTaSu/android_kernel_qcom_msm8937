@@ -647,6 +647,5 @@ config CHARGER_CROS_USBPD
 	  that into power_supply properties.
 
 source "drivers/power/supply/qcom/Kconfig"
-source "drivers/power/supply/oppo/Kconfig"
 
 endif # POWER_SUPPLY

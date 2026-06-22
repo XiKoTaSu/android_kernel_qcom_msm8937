@@ -3048,23 +3048,14 @@ static int msm_anlg_cdc_hph_pa_event(struct snd_soc_dapm_widget *w,
 	struct sdm660_cdc_priv *sdm660_cdc =
 				snd_soc_component_get_drvdata(component);
 
-#ifdef CONFIG_MACH_OPPO
-	struct wcd_mbhc *mbhc = &sdm660_cdc->mbhc;
-#endif
-
 	dev_dbg(component->dev, "%s: %s event = %d\n",
 				__func__, w->name, event);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
 		if (w->shift == 5)
-#ifdef CONFIG_MACH_16061
-			set_bit(WCD_MBHC_EVENT_PA_HPHL,
-					&mbhc->event_state);
-#else		
 			msm_anlg_cdc_notifier_call(component,
 					WCD_EVENT_PRE_HPHL_PA_ON);
-#endif
 		else if (w->shift == 4)
 			msm_anlg_cdc_notifier_call(component,
 					WCD_EVENT_PRE_HPHR_PA_ON);
@@ -3086,15 +3077,9 @@ static int msm_anlg_cdc_hph_pa_event(struct snd_soc_dapm_widget *w,
 			msm_anlg_cdc_dig_notifier_call(component,
 					       DIG_CDC_EVENT_RX2_MUTE_OFF);
 		}
-#ifdef CONFIG_MACH_16061
-		oppo_hp_pa_enable(codec, 1);
-#endif
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-#ifdef CONFIG_MACH_16061
-		oppo_hp_pa_enable(codec, 0);
-#endif
 		if (w->shift == 5) {
 			msm_anlg_cdc_dig_notifier_call(component,
 					       DIG_CDC_EVENT_RX1_MUTE_ON);

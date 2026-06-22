@@ -5,4 +5,3 @@
 #include "display.dtsi"
 #include "led.dtsi"
 #include "pm8937.dtsi"
-#include "touchscreen.dtsi"
