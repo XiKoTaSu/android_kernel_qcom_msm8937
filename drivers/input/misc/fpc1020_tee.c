@@ -47,6 +47,8 @@
 #include <linux/pinctrl/consumer.h>
 #include <soc/qcom/scm.h>
 
+bool touchkey_enabled = true;
+
 #define FPC1020_NAME "fpc1020"
 
 #define FPC1020_RESET_LOW_US		1000
