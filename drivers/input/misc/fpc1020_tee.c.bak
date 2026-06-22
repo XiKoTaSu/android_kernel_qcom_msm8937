@@ -439,12 +439,9 @@ static int fpc1020_probe(struct platform_device *pdev)
 	disable_irq_nosync(gpio_to_irq(fpc1020->irq_gpio));
 	fpc1020->irq_enabled = 0;
 
-	fpc1020->ttw_wl.name = "fpc_ttw_wl";
-	wakeup_source_add(&fpc1020->ttw_wl);
-	fpc1020->fpc_wl.name = "fpc_wl";
-	wakeup_source_add(&fpc1020->fpc_wl);
-	fpc1020->fpc_irq_wl.name = "fpc_irq_wl";
-	wakeup_source_add(&fpc1020->fpc_irq_wl);
+	wakeup_source_init(&fpc1020->ttw_wl, "fpc_ttw_wl");
+	wakeup_source_init(&fpc1020->fpc_wl, "fpc_wl");
+	wakeup_source_init(&fpc1020->fpc_irq_wl, "fpc_irq_wl");
 
 	fpc1020->input_handler.filter = input_filter;
 	fpc1020->input_handler.connect = input_connect;
@@ -480,26 +477,6 @@ exit:
 	return rc;
 }
 
-static int fpc1020_remove(struct platform_device *pdev)
-{
-	struct fpc1020_data *fpc1020 = dev_get_drvdata(&pdev->dev);
-
-	/* 关闭 regulator */
-	vreg_setup(fpc1020, "vdd_io", false);
-
-	/* 移除 sysfs 属性组 */
-	sysfs_remove_group(&pdev->dev.kobj, &attribute_group);
-
-	/* 注销 input_handler */
-	input_unregister_handler(&fpc1020->input_handler);
-
-	/* 移除 wakeup sources */
-	wakeup_source_remove(&fpc1020->ttw_wl);
-	wakeup_source_remove(&fpc1020->fpc_wl);
-	wakeup_source_remove(&fpc1020->fpc_irq_wl);
-
-	return 0;
-}
 
 static struct of_device_id fpc1020_of_match[] = {
 	{ .compatible = "fpc,fpc1020", },
