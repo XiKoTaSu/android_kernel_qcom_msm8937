@@ -47,7 +47,7 @@ jobs:
           git clone https://github.com/chaoticOS/clang-r563880c clang-r563880c
           cd clang-r563880c
 
-          # 初始化 LFS 并把真实二进制拉下来（关键）
+          # 初始化 LFS 并把真实二进制拉下来
           git lfs install
           git lfs pull
 
@@ -76,9 +76,6 @@ jobs:
           # NDK r29 中 LLVM 预编译目录
           export CLANG_DIR=$GITHUB_WORKSPACE/workdir/toolchain/clang-r563880c
           export PATH="$CLANG_DIR/bin:$PATH"
-
-          # ========== 关键的环境变量（解决兼容性） ==========
-          # 显式指定各个工具，防止 Makefile 回退到系统 GCC
           export CC=clang
           export LD=ld.lld
           export AR=llvm-ar
@@ -90,21 +87,14 @@ jobs:
           export HOSTCC=clang
           export HOSTCXX=clang++
 
-          # 告诉 Clang 目标平台的三元组（Android arm64 常用 aarch64-linux-android 或 aarch64-linux-gnu）
-          # export CLANG_TRIPLE=aarch64-linux-gnu-
-
           # 有些旧内核 Makefile 仍然检查 CROSS_COMPILE，设为空可避免警告
           export CROSS_COMPILE=
-
-          # 验证工具链版本
-          clang --version
-          ld.lld --version
 
           cd $GITHUB_WORKSPACE/workdir/source
 
           # 编译（LLVM=1 依然开启，配合上面环境变量双重保险）
           make LLVM=1 O=out vendor/msm8937-perf_defconfig vendor/xiaomi/msm8937/mi8937.config
-          make -j$(nproc --all) LLVM=1 O=out
+          make DTB_NAMES="oppo-msm8937/msm8940-pmi8950-mtp_16061.dtb"-j$(nproc --all) LLVM=1 O=out
 
       - name: Upload Kernel
         uses: actions/upload-artifact@v4
