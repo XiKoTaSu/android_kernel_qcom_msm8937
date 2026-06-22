@@ -93,7 +93,7 @@ jobs:
           cd $GITHUB_WORKSPACE/workdir/source
 
           # 编译（LLVM=1 依然开启，配合上面环境变量双重保险）
-          make LLVM=1 O=out vendor/msm8937-perf_defconfig vendor/xiaomi/msm8937/mi8937.config
+          make LLVM=1 O=out vendor/msm8937-perf_defconfig
           make DTB_NAMES="oppo-msm8937/msm8940-pmi8950-mtp_16061.dtb"-j$(nproc --all) LLVM=1 O=out
 
       - name: Upload Kernel

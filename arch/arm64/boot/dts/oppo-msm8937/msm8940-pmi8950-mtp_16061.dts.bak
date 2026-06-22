@@ -15,7 +15,7 @@
 
 #include "qcom/msm8940.dtsi"
 #include "qcom/pmi8950.dtsi"
-#include "common/fragments/qcom/msm8940-mtp.dtsi"
+#include "common/fragments/qcom/msm8937-qrd.dtsi"
 #include "qcom/msm8937-mdss-panels.dtsi"
 #include "qcom/msm8940-pinctrl.dtsi"
 
