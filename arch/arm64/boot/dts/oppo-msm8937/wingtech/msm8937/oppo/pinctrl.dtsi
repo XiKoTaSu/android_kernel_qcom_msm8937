@@ -11,6 +11,131 @@
 };
 
 &tlmm {
+    	oppo_devinfo{
+			hw_operator_gpio1_active: hw_operator_gpio1_active {
+				mux {
+					pins = "gpio20";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio20";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+
+			hw_operator_gpio2_active: hw_operator_gpio2_active {
+				mux {
+					pins = "gpio21";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio21";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+
+			hw_operator_gpio3_active: hw_operator_gpio3_active {
+				mux {
+					pins = "gpio22";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio22";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+
+			hw_sub_gpio1_active: hw_sub_gpio1_active {
+				mux {
+					pins = "gpio19";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio19";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};	
+
+			hw_audio_gpio1_active: hw_audio_gpio1_active {
+				mux {
+					pins = "gpio90";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio90";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+    	};
+
+    pmx_ts_int_active {
+		ts_int_active: ts_int_active {
+			config {
+				/delete-property/ bias-pull-up;
+				bias-pull-down;
+				input-enable;
+			};
+		};
+	};
+
+	pmx_pin_set_high {
+		pin_set_high: pin_set_high {
+			mux {
+				pins = "gpio65";
+				function = "gpio";
+			};
+				
+			config { 
+				pins = "gpio65";
+				drive-strength = <8>;
+				bias-pull-up;
+				input-enable;
+			};
+		};
+	};
+
+	pmx_pin_set_low {
+		pin_set_low: pin_set_low {
+			mux { 
+				pins = "gpio65";
+				function = "gpio";
+			};
+
+			config { 
+				pins = "gpio65";
+				drive-strength = <8>;
+				bias-pull-down;
+				input-enable;
+			};
+		};
+	};
+		
+	pmx_pin_set_nopull {		
+		pin_set_nopull: pin_set_nopull {
+			mux {
+				pins = "gpio65";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio65";
+				drive-strength = <8>;
+				bias-disable;
+				input-enable;
+			};
+		};
+	};
+    
     pmx_ts_id1_active {
 	    ts_id1_active: ts_id1_active {
 			mux {
