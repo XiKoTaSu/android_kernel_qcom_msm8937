@@ -86,8 +86,6 @@ enum {
 	NO_WAIT_CMD
 };
 
-extern bool msm_enable_legacy_adsp_hacks;
-
 #define ASM_SET_BIT(n, x)	(n |= 1 << x)
 #define ASM_TEST_BIT(n, x)	((n >> x) & 1)
 
@@ -2407,7 +2405,16 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 				__func__, data->payload_size);
 		break;
 	case ASM_SESSION_CMDRSP_GET_MTMX_STRTR_PARAMS_V2:
-		q6asm_process_mtmx_get_param_rsp(ac, (void *) payload);
+		payload_size = sizeof(struct asm_mtmx_strtr_get_params_cmdrsp);
+		if (data->payload_size < payload_size) {
+			pr_err("%s: insufficient payload size = %d\n",
+				__func__, data->payload_size);
+			spin_unlock_irqrestore(
+				&(session[session_id].session_lock), flags);
+			return -EINVAL;
+		}
+		q6asm_process_mtmx_get_param_rsp(ac,
+			(struct asm_mtmx_strtr_get_params_cmdrsp *) payload);
 		break;
 	case ASM_STREAM_PP_EVENT:
 	case ASM_STREAM_CMD_ENCDEC_EVENTS:
@@ -3328,9 +3335,6 @@ int q6asm_open_read_v4(struct audio_client *ac, uint32_t format,
 			uint16_t bits_per_sample, bool ts_mode,
 			uint32_t enc_cfg_id)
 {
-	if (msm_enable_legacy_adsp_hacks)
-		return q6asm_open_read_v3(ac, format, bits_per_sample);
-
 	return __q6asm_open_read(ac, format, bits_per_sample,
 				 PCM_MEDIA_FORMAT_V4 /*media fmt block ver*/,
 				 ts_mode, enc_cfg_id);
@@ -3680,9 +3684,6 @@ EXPORT_SYMBOL(q6asm_open_write_v3);
 int q6asm_open_write_v4(struct audio_client *ac, uint32_t format,
 			uint16_t bits_per_sample)
 {
-	if (msm_enable_legacy_adsp_hacks)
-		return q6asm_open_write_v3(ac, format, bits_per_sample);
-
 	return __q6asm_open_write(ac, format, bits_per_sample,
 				  ac->stream_id, false /*gapless*/,
 				  PCM_MEDIA_FORMAT_V4 /*pcm_format_block_ver*/);
@@ -3747,10 +3748,6 @@ int q6asm_stream_open_write_v4(struct audio_client *ac, uint32_t format,
 			       uint16_t bits_per_sample, int32_t stream_id,
 			       bool is_gapless_mode)
 {
-	if (msm_enable_legacy_adsp_hacks)
-		return q6asm_stream_open_write_v3(ac, format, bits_per_sample,
-							stream_id, is_gapless_mode);
-
 	return __q6asm_open_write(ac, format, bits_per_sample,
 				  stream_id, is_gapless_mode,
 				  PCM_MEDIA_FORMAT_V4 /*pcm_format_block_ver*/);
@@ -5040,12 +5037,6 @@ fail_cmd:
 }
 EXPORT_SYMBOL(q6asm_set_encdec_chan_map);
 
-int q6asm_enc_cfg_blk_pcm_v3(struct audio_client *ac,
-			     uint32_t rate, uint32_t channels,
-			     uint16_t bits_per_sample, bool use_default_chmap,
-			     bool use_back_flavor, u8 *channel_map,
-			     uint16_t sample_word_size);
-
 /*
  * q6asm_enc_cfg_blk_pcm_v5 - sends encoder configuration parameters
  *
@@ -5180,11 +5171,6 @@ int q6asm_enc_cfg_blk_pcm_v4(struct audio_client *ac,
 	u8 *channel_mapping;
 	u32 frames_per_buf = 0;
 	int rc;
-
-	if (msm_enable_legacy_adsp_hacks)
-		return q6asm_enc_cfg_blk_pcm_v3(ac, rate, channels, bits_per_sample,
-						use_default_chmap, use_back_flavor,
-						channel_map, sample_word_size);
 
 	if (!use_default_chmap && (channel_map == NULL)) {
 		pr_err("%s: No valid chan map and can't use default\n",
@@ -6766,12 +6752,6 @@ int q6asm_media_format_block_pcm_format_support_v4(struct audio_client *ac,
 						   uint16_t endianness,
 						   uint16_t mode)
 {
-	if (msm_enable_legacy_adsp_hacks)
-		return q6asm_media_format_block_pcm_format_support_v3(ac, rate, channels,
-					bits_per_sample, stream_id,
-					use_default_chmap, channel_map,
-					sample_word_size);
-
 	if (!use_default_chmap && (channel_map == NULL)) {
 		pr_err("%s: No valid chan map and can't use default\n",
 			__func__);
@@ -7199,11 +7179,6 @@ int q6asm_media_format_block_multi_ch_pcm_v4(struct audio_client *ac,
 					     uint16_t endianness,
 					     uint16_t mode)
 {
-	if (msm_enable_legacy_adsp_hacks)
-		return q6asm_media_format_block_multi_ch_pcm_v3(ac, rate, channels,
-					use_default_chmap, channel_map,
-					bits_per_sample, sample_word_size);
-
 	return __q6asm_media_format_block_multi_ch_pcm_v4(ac, rate, channels,
 							  use_default_chmap,
 							  channel_map,

@@ -3564,7 +3564,7 @@ static int send_afe_cal_type(int cal_index, int port_id)
 				this_afe.cal_data[cal_index]);
 
 	if (cal_block == NULL || cal_utils_is_cal_stale(cal_block)) {
-		pr_err("%s cal_block not found!!\n", __func__);
+		pr_err_ratelimited("%s cal_block not found!!\n", __func__);
 		ret = -EINVAL;
 		goto unlock;
 	}
@@ -8846,7 +8846,6 @@ int afe_set_lpass_clock(u16 port_id, struct afe_clk_cfg *cfg)
 		 cfg->clk_root, cfg->clk_set_mode,
 		 cfg->reserved, q6audio_get_port_id(port_id));
 
-
 	ret = q6afe_pack_and_set_param_in_band(port_id,
 					       q6audio_get_port_index(port_id),
 					       param_hdr, (u8 *) &clk_cfg);
@@ -9180,7 +9179,6 @@ int afe_set_lpass_clk_cfg(int index, struct afe_clk_set *cfg)
 		 __func__, cfg->clk_set_minor_version,
 		 cfg->clk_id, cfg->clk_freq_in_hz, cfg->clk_attri,
 		 cfg->clk_root, cfg->enable);
-
 
 	ret = q6afe_svc_pack_and_set_param_in_band(index, param_hdr,
 						   (u8 *) cfg);
@@ -9952,6 +9950,7 @@ static int afe_spv4_get_calib_data(
 	struct param_hdr_v3 param_hdr;
 	int port = SLIMBUS_4_TX;
 	int ret = -EINVAL;
+	uint32_t th_vi_ca_state;
 
 	if (!calib_resp) {
 		pr_err("%s: Invalid params\n", __func__);
@@ -9973,6 +9972,12 @@ static int afe_spv4_get_calib_data(
 		       __func__, port, param_hdr.param_id, ret);
 		goto get_params_fail;
 	}
+	th_vi_ca_state = this_afe.spv4_calib_data.res_cfg.th_vi_ca_state;
+	if (th_vi_ca_state < FBSP_INCORRECT_OP_MODE ||
+		th_vi_ca_state > MAX_FBSP_STATE) {
+		pr_err("%s: invalid fbsp state %d\n", __func__, th_vi_ca_state);
+		goto get_params_fail;
+	}
 	memcpy(&calib_resp->res_cfg, &this_afe.spv4_calib_data.res_cfg,
 		sizeof(this_afe.calib_data.res_cfg));
 	pr_info("%s: state %s resistance %d %d\n", __func__,
@@ -9991,6 +9996,7 @@ int afe_spk_prot_get_calib_data(struct afe_spkr_prot_get_vi_calib *calib_resp)
 	struct param_hdr_v3 param_hdr;
 	int port = SLIMBUS_4_TX;
 	int ret = -EINVAL;
+	uint32_t th_vi_ca_state;
 
 	if (!calib_resp) {
 		pr_err("%s: Invalid params\n", __func__);
@@ -10010,6 +10016,12 @@ int afe_spk_prot_get_calib_data(struct afe_spkr_prot_get_vi_calib *calib_resp)
 	if (ret < 0) {
 		pr_err("%s: get param port 0x%x param id[0x%x]failed %d\n",
 		       __func__, port, param_hdr.param_id, ret);
+		goto get_params_fail;
+	}
+	th_vi_ca_state = this_afe.calib_data.res_cfg.th_vi_ca_state;
+	if (th_vi_ca_state < FBSP_INCORRECT_OP_MODE ||
+		th_vi_ca_state > MAX_FBSP_STATE) {
+		pr_err("%s: invalid fbsp state %d\n", __func__, th_vi_ca_state);
 		goto get_params_fail;
 	}
 	memcpy(&calib_resp->res_cfg, &this_afe.calib_data.res_cfg,
@@ -11303,7 +11315,6 @@ int afe_unvote_lpass_core_hw(uint32_t hw_block_id, uint32_t client_handle)
 
 	pr_debug("%s: lpass core hw unvote opcode[0x%x] hw id[0x%x]\n",
 		__func__, cmd_ptr->hdr.opcode, cmd_ptr->hw_block_id);
-
 
 	if (cmd_ptr->client_handle <= 0) {
 		pr_err("%s: invalid client handle\n", __func__);

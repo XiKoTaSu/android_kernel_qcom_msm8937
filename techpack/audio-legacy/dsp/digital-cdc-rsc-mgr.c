@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -54,6 +55,7 @@ void digital_cdc_rsc_mgr_hw_vote_disable(struct clk* vote_handle)
 	mutex_lock(&hw_vote_lock);
 	clk_disable_unprepare(vote_handle);
 	mutex_unlock(&hw_vote_lock);
+	pr_debug("%s\n", __func__);
 }
 EXPORT_SYMBOL(digital_cdc_rsc_mgr_hw_vote_disable);
 

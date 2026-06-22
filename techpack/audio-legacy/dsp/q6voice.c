@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
- * Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 #include <linux/slab.h>
 #include <linux/kthread.h>
@@ -10,9 +9,6 @@
 #include <linux/uaccess.h>
 #include <linux/wait.h>
 #include <linux/mutex.h>
-#if IS_ENABLED(CONFIG_MACH_XIAOMI_SDM439)
-#include <xiaomi-sdm439/mach.h>
-#endif
 
 #include <soc/qcom/socinfo.h>
 
@@ -28,15 +24,6 @@
 #include "adsp_err.h"
 #include <dsp/voice_mhi.h>
 
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && !defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-#include <linux/input/doubletap2wake.h>
-#elif (defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) && !defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE))
-#include <linux/input/sweep2wake.h>
-#elif (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-#include <linux/input/doubletap2wake.h>
-#include <linux/input/sweep2wake.h>
-#endif
-
 #define TIMEOUT_MS 300
 
 
@@ -46,7 +33,6 @@
 #define NUM_CHANNELS_STEREO 2
 #define NUM_CHANNELS_THREE 3
 #define NUM_CHANNELS_QUAD 4
-#define CVP_VERSION_1 1
 #define CVP_VERSION_2 2
 #define GAIN_Q14_FORMAT(a) (a << 14)
 
@@ -67,8 +53,6 @@ struct cvd_version_table cvd_version_table_mapping[CVD_INT_VERSION_MAX] = {
 		{CVD_VERSION_2_3, CVD_INT_VERSION_2_3},
 		{CVD_VERSION_2_4, CVD_INT_VERSION_2_4},
 };
-
-extern bool msm_enable_legacy_adsp_hacks;
 
 static struct common_data common;
 static bool module_initialized;
@@ -3236,6 +3220,13 @@ static int voice_send_cvp_register_cal_cmd(struct voice_data *v)
 		 voc_get_session_name(v->session_id), v->dev_tx.dev_id,
 		 v->dev_rx.dev_id);
 
+	if (col_data->cal_data.size >= MAX_COL_INFO_SIZE) {
+		pr_err("%s: Invalid cal data size %ld!\n",
+			__func__, col_data->cal_data.size);
+		ret = -EINVAL;
+		goto unlock;
+	}
+
 	memcpy(&cvp_reg_cal_cmd.cvp_cal_data.column_info[0],
 	       (void *) &((struct audio_cal_info_voc_col *)
 	       col_data->cal_info)->data,
@@ -3393,6 +3384,13 @@ static int voice_send_cvp_register_vol_cal_cmd(struct voice_data *v)
 		pr_err("%s: Voice_get_cal failed for cal %d!\n",
 			__func__, CVP_VOCVOL_CAL);
 
+		goto unlock;
+	}
+
+	if (col_data->cal_data.size >= MAX_COL_INFO_SIZE) {
+		pr_err("%s: Invalid cal data size %ld!\n",
+			__func__, col_data->cal_data.size);
+		ret = -EINVAL;
 		goto unlock;
 	}
 
@@ -4151,17 +4149,6 @@ static int voice_send_cvp_channel_info_v2(struct voice_data *v,
 		memcpy(&channel_info->channel_mapping,
 		       v->dev_rx.channel_mapping,
 		       VSS_NUM_CHANNELS_MAX * sizeof(uint8_t));
-#if IS_ENABLED(CONFIG_MACH_XIAOMI_SDM439)
-		if (xiaomi_sdm439_mach_get()) {
-			//force to mono
-			pr_debug("xiaomi sdm439 force to mono reference signal\n");
-			channel_info->num_channels = 1;
-			memset(&channel_info->channel_mapping,
-				0,
-				VSS_NUM_CHANNELS_MAX * sizeof(uint8_t));
-			channel_info->channel_mapping[0] = PCM_CHANNEL_FC;
-		}
-#endif
 		break;
 	default:
 		pr_err("%s: Invalid param type\n",
@@ -4446,16 +4433,6 @@ static int voice_get_avcs_version_per_service(uint32_t service_id)
 	int ret = 0;
 	size_t ver_size;
 	struct avcs_fwk_ver_info *ver_info = NULL;
-
-	if (msm_enable_legacy_adsp_hacks) {
-		if (service_id == AVCS_SERVICE_ID_ALL) {
-			pr_err("%s: Invalid service id: %d", __func__,
-				AVCS_SERVICE_ID_ALL);
-			return -EINVAL;
-		}
-		common.is_avcs_version_queried = true;
-		return CVP_VERSION_1;
-	}
 
 	if (service_id == AVCS_SERVICE_ID_ALL) {
 		pr_err("%s: Invalid service id: %d", __func__,
@@ -7002,10 +6979,6 @@ uint8_t voc_set_mbd_enable(bool enable)
 }
 EXPORT_SYMBOL(voc_set_mbd_enable);
 
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) || defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-bool gesture_incall = false;
-#endif
-
 /**
  * voc_end_voice_call -
  *       command to end voice call
@@ -7024,17 +6997,6 @@ int voc_end_voice_call(uint32_t session_id)
 
 		return -EINVAL;
 	}
-
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && !defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0)
-#elif (defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) && !defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE))
-	if (s2w_switch == 1)
-#elif (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0 || s2w_switch == 1)
-#endif
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) || defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-		gesture_incall = false;
-#endif
 
 	mutex_lock(&v->lock);
 
@@ -7089,17 +7051,6 @@ int voc_standby_voice_call(uint32_t session_id)
 		return -EINVAL;
 	}
 	pr_debug("%s: voc state=%d", __func__, v->voc_state);
-
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && !defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0)
-#elif (defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) && !defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE))
-	if (s2w_switch == 1)
-#elif (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0 || s2w_switch == 1)
-#endif
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) || defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-		gesture_incall = true;
-#endif
 
 	if (v->voc_state == VOC_RUN) {
 		apr_mvm = common.apr_q6_mvm;
@@ -7353,17 +7304,6 @@ int voc_resume_voice_call(uint32_t session_id)
 	struct voice_data *v = voice_get_session(session_id);
 	int ret = 0;
 
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && !defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0)
-#elif (defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) && !defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE))
-	if (s2w_switch == 1)
-#elif (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0 || s2w_switch == 1)
-#endif
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) || defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-		gesture_incall = true;
-#endif
-
 	ret = voice_send_start_voice_cmd(v);
 	if (ret < 0) {
 		pr_err("Fail in sending START_VOICE\n");
@@ -7394,17 +7334,6 @@ int voc_start_voice_call(uint32_t session_id)
 
 		return -EINVAL;
 	}
-
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && !defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0)
-#elif (defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) && !defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE))
-	if (s2w_switch == 1)
-#elif (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) && defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-	if (dt2w_switch > 0 || s2w_switch == 1)
-#endif
-#if (defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE) || defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE))
-		gesture_incall = true;
-#endif
 
 	mutex_lock(&v->lock);
 
@@ -8002,7 +7931,7 @@ static int32_t qdsp_cvs_callback(struct apr_client_data *data, void *priv)
 			 VSS_ISTREAM_EVT_OOB_NOTIFY_ENC_BUFFER_READY) {
 		int ret = 0;
 		u16 cvs_handle;
-		uint32_t *cvs_voc_pkt, tot_buf_sz;
+		uint32_t *cvs_voc_pkt;
 		struct cvs_enc_buffer_consumed_cmd send_enc_buf_consumed_cmd;
 		void *apr_cvs;
 
@@ -8031,14 +7960,9 @@ static int32_t qdsp_cvs_callback(struct apr_client_data *data, void *priv)
 			VSS_ISTREAM_EVT_OOB_NOTIFY_ENC_BUFFER_CONSUMED;
 
 		cvs_voc_pkt = v->shmem_info.sh_buf.buf[1].data;
-
-		if (__builtin_add_overflow(cvs_voc_pkt[2], 3 * sizeof(uint32_t), &tot_buf_sz)) {
-			 pr_err("%s: integer overflow detected\n", __func__);
-			 return -EINVAL;
-		}
-
 		if (cvs_voc_pkt != NULL &&  common.mvs_info.ul_cb != NULL) {
-			if (v->shmem_info.sh_buf.buf[1].size < tot_buf_sz) {
+			if (v->shmem_info.sh_buf.buf[1].size <
+			    ((3 * sizeof(uint32_t)) + cvs_voc_pkt[2])) {
 				pr_err("%s: invalid voc pkt size\n", __func__);
 				return -EINVAL;
 			}

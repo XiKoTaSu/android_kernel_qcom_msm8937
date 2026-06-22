@@ -3445,13 +3445,6 @@ static int msm8952_asoc_machine_probe(struct platform_device *pdev)
 	char *temp_str = NULL;
 	const struct of_device_id *match;
 
-#ifdef CONFIG_MACH_16061
-	const char *spk_pa_str = "oppo-spk-pa-en";
-	const char *spk_boost_str = "oppo-spk-boost-en";
-	const char *hp_pa_str = "oppo-hp-pa-en";
-	const char *hp_vdd_str = "oppo-hp-vdd";
-#endif
-
 	pdata = devm_kzalloc(&pdev->dev,
 				sizeof(struct msm_asoc_mach_data),
 				GFP_KERNEL);
@@ -3765,35 +3758,6 @@ parse_mclk_freq:
 		ret = -EPROBE_DEFER;
 		goto err;
 	}
-
-#ifdef CONFIG_MACH_16061
-	pdata->spk_pa_en_gpio = of_get_named_gpio(pdev->dev.of_node,
-							spk_pa_str, 0);
-	if (pdata->spk_pa_en_gpio < 0) {
-		dev_err(&pdev->dev, "%s: missing %s in dt node\n",
-			__func__, spk_pa_str);
-	}
-
-	pdata->spk_boost_en_gpio = of_get_named_gpio(pdev->dev.of_node,
-							spk_boost_str, 0);
-	if (pdata->spk_boost_en_gpio < 0) {
-		dev_err(&pdev->dev, "%s: missing %s in dt node\n",
-			__func__, spk_boost_str);
-	}
-
-	pdata->hp_pa_en_gpio = of_get_named_gpio(pdev->dev.of_node,
-							hp_pa_str, 0);
-	if (pdata->hp_pa_en_gpio < 0) {
-		dev_err(&pdev->dev, "%s: missing %s in dt node\n",
-			__func__, hp_pa_str);
-	}
-
-	ret = oppo_hp_pa_vdd_init(pdev, pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "%s: failed to init %s supply %d\n",
-			__func__, hp_vdd_str, ret);
-	}
-#endif
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
 	if (ret) {

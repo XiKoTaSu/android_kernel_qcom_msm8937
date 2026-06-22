@@ -152,6 +152,8 @@ static int lpass_hw_vote_prepare(struct clk_hw *hw)
 	int ret;
 
 	if (clk_priv->clk_src == AUDIO_EXT_CLK_LPASS_CORE_HW_VOTE)  {
+		pr_debug("%s: vote for %d clock\n",
+			__func__, clk_priv->clk_src);
 		ret = afe_vote_lpass_core_hw(AFE_LPASS_CORE_HW_MACRO_BLOCK,
 			"LPASS_HW_MACRO",
 			&clk_priv->lpass_core_hwvote_client_handle);
@@ -163,6 +165,8 @@ static int lpass_hw_vote_prepare(struct clk_hw *hw)
 	}
 
 	if (clk_priv->clk_src == AUDIO_EXT_CLK_LPASS_AUDIO_HW_VOTE)  {
+		pr_debug("%s: vote for %d clock\n",
+			__func__, clk_priv->clk_src);
 		ret = afe_vote_lpass_core_hw(AFE_LPASS_CORE_HW_DCODEC_BLOCK,
 			"LPASS_HW_DCODEC",
 			&clk_priv->lpass_audio_hwvote_client_handle);
@@ -182,6 +186,8 @@ static void lpass_hw_vote_unprepare(struct clk_hw *hw)
 	int ret = 0;
 
 	if (clk_priv->clk_src == AUDIO_EXT_CLK_LPASS_CORE_HW_VOTE) {
+		pr_debug("%s: unvote for %d clock\n",
+			__func__, clk_priv->clk_src);
 		ret = afe_unvote_lpass_core_hw(
 			AFE_LPASS_CORE_HW_MACRO_BLOCK,
 			clk_priv->lpass_core_hwvote_client_handle);
@@ -192,6 +198,8 @@ static void lpass_hw_vote_unprepare(struct clk_hw *hw)
 	}
 
 	if (clk_priv->clk_src == AUDIO_EXT_CLK_LPASS_AUDIO_HW_VOTE) {
+		pr_debug("%s: unvote for %d clock\n",
+			__func__, clk_priv->clk_src);
 		ret = afe_unvote_lpass_core_hw(
 			AFE_LPASS_CORE_HW_DCODEC_BLOCK,
 			clk_priv->lpass_audio_hwvote_client_handle);

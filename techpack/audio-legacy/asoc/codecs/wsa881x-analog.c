@@ -527,13 +527,13 @@ static int wsa881x_visense_adc_ctrl(struct snd_soc_component *component,
 			snd_soc_component_update_bits(component,
 					WSA881X_ADC_SEL_IBIAS,
 					0x70, 0x40);
-			snd_soc_component_update_bits(component,
-					WSA881X_ADC_EN_SEL_IBIAS,
-					0x07, 0x04);
-			snd_soc_component_update_bits(component,
-					WSA881X_ADC_EN_MODU_V, 0x80, 0x80);
-			snd_soc_component_update_bits(component,
-					WSA881X_ADC_EN_MODU_I, 0x80, 0x80);
+		snd_soc_component_update_bits(component,
+				WSA881X_ADC_EN_SEL_IBIAS,
+				0x07, 0x04);
+		snd_soc_component_update_bits(component,
+				WSA881X_ADC_EN_MODU_V, 0x80, 0x80);
+		snd_soc_component_update_bits(component,
+				WSA881X_ADC_EN_MODU_I, 0x80, 0x80);
 	} else {
 		/* Ensure: Speaker Protection has been stopped */
 		snd_soc_component_update_bits(component,
@@ -1050,9 +1050,7 @@ static int wsa881x_shutdown(struct wsa881x_pdata *pdata)
 		return ret;
 	}
 
-#ifndef CONFIG_COMMON_CLK_MSM
 	if (__clk_is_enabled(pdata->wsa_mclk))
-#endif
 		clk_disable_unprepare(pdata->wsa_mclk);
 
 	ret = msm_cdc_pinctrl_select_sleep_state(pdata->wsa_clk_gpio_p);
